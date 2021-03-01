@@ -14,13 +14,13 @@ import com.androiddevs.mvvmnewsapp.models.Article
 
 @TypeConverters(Converters::class)
 
-abstract class ArticleDatabase : RoomDatabase(), ArticleDao {
+abstract class ArticleDatabase : RoomDatabase() {
 
     abstract fun getArticleDao(): ArticleDao
 
     companion object{
         @Volatile
-        private var instance: ArticleDao? = null
+        private var instance: ArticleDatabase? = null
         private val LOCK = Any()
 
         operator fun invoke(context: Context) = instance ?: synchronized(LOCK){
