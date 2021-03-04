@@ -9,5 +9,5 @@ data class NewsResponse(
     @SerializedName("totalResults")
     val totalResults: Int,
     @SerializedName("articles")
-    val articles: List<Article>
+    val articles: MutableList<Article>
 )
