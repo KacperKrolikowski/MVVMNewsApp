@@ -17,6 +17,7 @@ import com.androiddevs.mvvmnewsapp.repository.NewsRepository
 import com.androiddevs.mvvmnewsapp.util.Resource
 import kotlinx.coroutines.launch
 import retrofit2.Response
+import java.io.IOException
 
 class NewsViewModel(
     app: Application,
@@ -36,9 +37,7 @@ class NewsViewModel(
     }
 
     fun getBreakingNews(countryCode: String) = viewModelScope.launch {
-        breakingNews.postValue(Resource.Loading())
-        val response = newsRepository.getBreakingNews(countryCode, breakingNewsPage)
-        breakingNews.postValue(handleBreakingNewsResponse(response))
+        safeBreakingNewsCall(countryCode)
 
     }
 
@@ -60,9 +59,7 @@ class NewsViewModel(
     }
 
     fun searchNews(searchQuery: String) = viewModelScope.launch {
-        searchNews.postValue(Resource.Loading())
-        val response = newsRepository.searchNews(searchQuery, searchNewsPage)
-        searchNews.postValue(handleSearchNewsResponse(response))
+        safeSearchNewsCall(searchQuery)
     }
 
     private fun handleSearchNewsResponse(response: Response<NewsResponse>) : Resource<NewsResponse>{
@@ -90,6 +87,40 @@ class NewsViewModel(
 
     fun deleteArticle(article: Article) = viewModelScope.launch {
         newsRepository.deleteArticle(article)
+    }
+
+    private suspend fun safeSearchNewsCall(countryCode: String){
+        searchNews.postValue(Resource.Loading())
+        try {
+            if (hasInternetConnection()) {
+                val response = newsRepository.searchNews(countryCode, searchNewsPage)
+                searchNews.postValue(handleSearchNewsResponse(response))
+            } else{
+                searchNews.postValue(Resource.Error("No internet connection"))
+            }
+        } catch (t: Throwable){
+            when(t){
+                is IOException -> searchNews.postValue(Resource.Error("Network Failure"))
+                else -> searchNews.postValue(Resource.Error("Conversion Error"))
+            }
+        }
+    }
+
+    private suspend fun safeBreakingNewsCall(countryCode: String){
+        breakingNews.postValue(Resource.Loading())
+        try {
+            if (hasInternetConnection()) {
+                val response = newsRepository.getBreakingNews(countryCode, breakingNewsPage)
+                breakingNews.postValue(handleBreakingNewsResponse(response))
+            } else{
+                breakingNews.postValue(Resource.Error("No internet connection"))
+            }
+        } catch (t: Throwable){
+            when(t){
+                is IOException -> breakingNews.postValue(Resource.Error("Network Failure"))
+                else -> breakingNews.postValue(Resource.Error("Conversion Error"))
+            }
+        }
     }
 
     private fun hasInternetConnection(): Boolean{
