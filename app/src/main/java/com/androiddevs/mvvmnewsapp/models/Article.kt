@@ -4,6 +4,7 @@ package com.androiddevs.mvvmnewsapp.models
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
+import java.io.Serializable
 
 @Entity(
     tableName = "articles"
@@ -28,4 +29,4 @@ data class Article(
     val publishedAt: String,
     @SerializedName("content")
     val content: String
-)
+) : Serializable
